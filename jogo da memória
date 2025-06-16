@@ -1,0 +1,115 @@
+let cartas = [];
+let valores = [];
+let primeiraCarta = null;
+let segundaCarta = null;
+let bloqueado = false;
+let tentativas = 0;
+
+function setup() {
+  createCanvas(640, 480);
+  iniciarCartas();
+}
+
+function draw() {
+  background(50, 100, 150);
+  textSize(20);
+  fill(255);
+  text(`Tentativas: ${tentativas}`, 10, 30);
+
+  for (let carta of cartas) {
+    carta.mostrar();
+  }
+
+  // Checa se as cartas devem virar de volta
+  if (primeiraCarta && segundaCarta && !bloqueado) {
+    bloqueado = true;
+    setTimeout(() => {
+      if (primeiraCarta.valor !== segundaCarta.valor) {
+        primeiraCarta.virada = false;
+        segundaCarta.virada = false;
+      } else {
+        primeiraCarta.combinada = true;
+        segundaCarta.combinada = true;
+      }
+      primeiraCarta = null;
+      segundaCarta = null;
+      bloqueado = false;
+    }, 800);
+  }
+}
+
+function mousePressed() {
+  if (bloqueado) return;
+
+  for (let carta of cartas) {
+    if (carta.contem(mouseX, mouseY) && !carta.virada && !carta.combinada) {
+      carta.virada = true;
+      if (!primeiraCarta) {
+        primeiraCarta = carta;
+      } else if (!segundaCarta && carta !== primeiraCarta) {
+        segundaCarta = carta;
+        tentativas++;
+      }
+      break;
+    }
+  }
+}
+
+function iniciarCartas() {
+  let totalCartas = 16; // 8 pares
+  valores = [];
+  for (let i = 1; i <= totalCartas / 2; i++) {
+    valores.push(i);
+    valores.push(i);
+  }
+  shuffle(valores, true);
+
+  cartas = [];
+  let index = 0;
+  let cols = 4;
+  let rows = 4;
+  let w = 100;
+  let h = 120;
+  let espaco = 20;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      let px = x * (w + espaco) + 60;
+      let py = y * (h + espaco) + 60;
+      cartas.push(new Carta(px, py, w, h, valores[index]));
+      index++;
+    }
+  }
+}
+
+class Carta {
+  constructor(x, y, w, h, valor) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.valor = valor;
+    this.virada = false;
+    this.combinada = false;
+  }
+
+  mostrar() {
+    stroke(255);
+    strokeWeight(2);
+    if (this.virada || this.combinada) {
+      fill(255);
+      rect(this.x, this.y, this.w, this.h, 10);
+      fill(0);
+      textAlign(CENTER, CENTER);
+      textSize(32);
+      text(this.valor, this.x + this.w / 2, this.y + this.h / 2);
+    } else {
+      fill(100);
+      rect(this.x, this.y, this.w, this.h, 10);
+    }
+  }
+
+  contem(px, py) {
+    return px > this.x && px < this.x + this.w && py > this.y && py < this.y + this.h;
+  }
+}
