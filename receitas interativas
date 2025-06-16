@@ -1,0 +1,73 @@
+let receitas = [
+  {
+    titulo: "Bolo de Cenoura",
+    ingredientes: [
+      "3 cenouras médias",
+      "4 ovos",
+      "1 xícara de óleo",
+      "2 xícaras de açúcar",
+      "2 e 1/2 xícaras de farinha de trigo",
+      "1 colher de sopa de fermento"
+    ],
+    preparo: "Bata no liquidificador as cenouras, ovos e óleo. Misture o restante dos ingredientes e leve ao forno por 40 minutos a 180ºC."
+  },
+  {
+    titulo: "Panqueca de Banana",
+    ingredientes: [
+      "1 banana madura",
+      "1 ovo",
+      "1 colher de sopa de aveia"
+    ],
+    preparo: "Amasse a banana, misture com o ovo e a aveia. Cozinhe em frigideira antiaderente até dourar dos dois lados."
+  },
+  {
+    titulo: "Arroz de Couve-flor",
+    ingredientes: [
+      "1 cabeça de couve-flor",
+      "1 colher de sopa de azeite",
+      "Sal e temperos a gosto"
+    ],
+    preparo: "Processe a couve-flor até ficar com textura de arroz. Refogue no azeite por 5 minutos e tempere."
+  }
+];
+
+let buscaInput;
+
+function setup() {
+  noCanvas();
+  createElement('h1', '📖 Receitas Interativas').style('color', '#284260');
+  createElement('h5', 'Busque pelo nome da receita:');
+
+  buscaInput = createInput();
+  buscaInput.input(filtrarReceitas);
+  buscaInput.style('margin-bottom', '20px');
+  mostrarTodasReceitas();
+}
+
+function mostrarTodasReceitas(filtro = '') {
+  selectAll('.receita').forEach(el => el.remove()); // limpa resultados anteriores
+
+  for (let r of receitas) {
+    if (r.titulo.toLowerCase().includes(filtro.toLowerCase())) {
+      let card = createDiv().addClass('receita');
+      card.style('border', '1px solid #6E859F');
+      card.style('padding', '10px');
+      card.style('margin-bottom', '15px');
+      card.style('border-radius', '10px');
+
+      createElement('h2', r.titulo).parent(card).style('color', '#284260');
+      createElement('h5', 'Ingredientes:').parent(card);
+      let ul = createElement('ul').parent(card);
+      for (let ing of r.ingredientes) {
+        createElement('li', ing).parent(ul);
+      }
+      createElement('h5', 'Modo de Preparo:').parent(card);
+      createP(r.preparo).parent(card).style('color', '#6E859F');
+    }
+  }
+}
+
+function filtrarReceitas() {
+  let filtro = buscaInput.value();
+  mostrarTodasReceitas(filtro);
+}
