@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>RitmoMemória</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+<script>
+  let botoes = [];
+  let cores = ['red', 'green', 'blue', 'yellow'];
+  let sons = [];
+  let sequencia = [];
+  let jogadorSeq = [];
+  let mostrando = false;
+  let indexMostrando = 0;
+  let tempoUltimo = 0;
+  let intervalo = 800;
+  let estado = "esperando";
+  let msg = "Clique para começar";
+
+  function setup() {
+    createCanvas(400, 500);
+    let tam = 180;
+    botoes.push(new Botao(0, 0, tam, tam, color(255, 0, 0), 261)); // red
+    botoes.push(new Botao(tam, 0, tam, tam, color(0, 255, 0), 329)); // green
+    botoes.push(new Botao(0, tam, tam, tam, color(0, 0, 255), 392)); // blue
+    botoes.push(new Botao(tam, tam, tam, tam, color(255, 255, 0), 523)); // yellow
+
+    for (let b of botoes) {
+      let osc = new p5.Oscillator();
+      osc.setType('sine');
+      osc.freq(b.freq);
+      osc.amp(0);
+      osc.start();
+      sons.push(osc);
+    }
+  }
+
+  function draw() {
+    background(30);
+    for (let i = 0; i < botoes.length; i++) {
+      botoes[i].exibir();
+    }
+
+    fill(255);
+    textAlign(CENTER);
+    textSize(24);
+    text(msg, width / 2, height - 40);
+
+    if (mostrando && millis() - tempoUltimo > intervalo) {
+      if (indexMostrando < sequencia.length) {
+        let atual = sequencia[indexMostrando];
+        botoes[atual].tocar();
+        indexMostrando++;
+        tempoUltimo = millis();
+      } else {
+        mostrando = false;
+        estado = "jogando";
+        jogadorSeq = [];
+        msg = "Sua vez!";
+      }
+    }
+  }
+
+  function mousePressed() {
+    if (estado === "esperando") {
+      novaRodada();
+      return;
+    }
+
+    if (estado === "jogando") {
+      for (let i = 0; i < botoes.length; i++) {
+        if (botoes[i].foiClicado(mouseX, mouseY)) {
+          botoes[i].tocar();
+          jogadorSeq.push(i);
+          if (jogadorSeq[jogadorSeq.length - 1] !== sequencia[jogadorSeq.length - 1]) {
+            msg = "Errou! Reiniciando...";
+            estado = "esperando";
+            sequencia = [];
+            return;
+          }
+
+          if (jogadorSeq.length === sequencia.length) {
+            msg = "Muito bem! Próxima rodada...";
+            setTimeout(novaRodada, 1000);
+            estado = "esperando";
+          }
+        }
+      }
+    }
+  }
+
+  function novaRodada() {
+    jogadorSeq = [];
+    sequencia.push(floor(random(4)));
+    indexMostrando = 0;
+    tempoUltimo = millis();
+    mostrando = true;
+    estado = "mostrando";
+    msg = "Memorize a sequência";
+  }
+
+  class Botao {
+    constructor(x, y, w, h, cor, freq) {
+      this.x = x;
+      this.y = y;
+      this.w = w;
+      this.h = h;
+      this.cor = cor;
+      this.claro = color(red(cor) + 100, green(cor) + 100, blue(cor) + 100);
+      this.freq = freq;
+      this.ativo = false;
+    }
+
+    exibir() {
+      fill(this.ativo ? this.claro : this.cor);
+      stroke(0);
+      rect(this.x, this.y, this.w, this.h);
+    }
+
+    foiClicado(mx, my) {
+      return mx > this.x && mx < this.x + this.w && my > this.y && my < this.y + this.h;
+    }
+
+    tocar() {
+      this.ativo = true;
+      let index = botoes.indexOf(this);
+      sons[index].amp(0.4, 0.05);
+      sons[index].amp(0, 0.3);
+      setTimeout(() => this.ativo = false, 300);
+    }
+  }
+</script>
+</body>
+</html>
