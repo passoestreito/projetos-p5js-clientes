@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Planeta das Cores</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/addons/p5.sound.min.js"></script>
+</head>
+<body>
+  <script>
+    let planetas = [];
+    let fundo;
+    let sons = [];
+
+    function preload() {
+      // Sons básicos (substitua por arquivos reais se desejar)
+      for (let i = 0; i < 5; i++) {
+        let osc = new p5.Oscillator();
+        osc.setType('sine');
+        osc.freq(220 + i * 110);
+        osc.amp(0);
+        osc.start();
+        sons.push(osc);
+      }
+    }
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      fundo = color(10, 10, 30);
+
+      planetas.push(new Planeta(200, 300, 60, color(255, 100, 100), color(255, 200, 200), 0)); // Amor
+      planetas.push(new Planeta(400, 200, 50, color(100, 100, 255), color(180, 180, 255), 1)); // Tristeza
+      planetas.push(new Planeta(600, 350, 70, color(255, 255, 100), color(255, 255, 200), 2)); // Alegria
+      planetas.push(new Planeta(800, 250, 55, color(100, 255, 100), color(200, 255, 200), 3)); // Calma
+      planetas.push(new Planeta(1000, 400, 65, color(255, 150, 50), color(255, 220, 180), 4)); // Energia
+    }
+
+    function draw() {
+      background(fundo);
+      for (let p of planetas) {
+        p.exibir();
+      }
+    }
+
+    function mousePressed() {
+      for (let p of planetas) {
+        if (p.foiClicado(mouseX, mouseY)) {
+          fundo = p.corFundo;
+          tocarSom(p.indiceSom);
+        }
+      }
+    }
+
+    function tocarSom(indice) {
+      for (let i = 0; i < sons.length; i++) {
+        if (i === indice) {
+          sons[i].amp(0.5, 0.1);
+          sons[i].amp(0, 0.5); // Fade out
+        } else {
+          sons[i].amp(0, 0.1);
+        }
+      }
+    }
+
+    class Planeta {
+      constructor(x, y, r, cor, corFundo, indiceSom) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.cor = cor;
+        this.corFundo = corFundo;
+        this.indiceSom = indiceSom;
+      }
+
+      exibir() {
+        noStroke();
+        fill(this.cor);
+        ellipse(this.x, this.y, this.r * 2);
+      }
+
+      foiClicado(px, py) {
+        return dist(px, py, this.x, this.y) < this.r;
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+  </script>
+</body>
+</html>
