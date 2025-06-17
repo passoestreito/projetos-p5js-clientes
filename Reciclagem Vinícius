@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>ClickRecicle</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+<script>
+  let lixeiras = [];
+  let itens = [];
+  let itemSelecionado = null;
+  let pontuacao = 0;
+  let dicaAtual = "";
+  const dicas = [
+    "Reduza o uso de plásticos descartáveis.",
+    "Sempre lave os recicláveis antes de descartar.",
+    "Vidros quebrados devem ser embalados antes de ir ao lixo.",
+    "Doe roupas em bom estado ao invés de jogar fora.",
+    "Evite imprimir papel desnecessariamente."
+  ];
+
+  function setup() {
+    createCanvas(windowWidth, windowHeight);
+
+    lixeiras.push(new Lixeira(150, height - 150, "papel", color(0, 150, 255)));
+    lixeiras.push(new Lixeira(400, height - 150, "plástico", color(255, 0, 100)));
+    lixeiras.push(new Lixeira(650, height - 150, "vidro", color(0, 200, 0)));
+    lixeiras.push(new Lixeira(900, height - 150, "metal", color(200, 200, 0)));
+
+    gerarItens();
+  }
+
+  function draw() {
+    background(240);
+    textSize(20);
+    fill(0);
+    text("Pontuação: " + pontuacao, 20, 30);
+
+    if (dicaAtual) {
+      textSize(16);
+      fill(50, 100, 50);
+      text("Dica: " + dicaAtual, 20, 60);
+    }
+
+    for (let lixeira of lixeiras) {
+      lixeira.exibir();
+    }
+
+    for (let item of itens) {
+      item.exibir();
+    }
+  }
+
+  function mousePressed() {
+    for (let item of itens) {
+      if (item.foiClicado(mouseX, mouseY)) {
+        itemSelecionado = item;
+        break;
+      }
+    }
+  }
+
+  function mouseDragged() {
+    if (itemSelecionado) {
+      itemSelecionado.x = mouseX;
+      itemSelecionado.y = mouseY;
+    }
+  }
+
+  function mouseReleased() {
+    if (itemSelecionado) {
+      for (let lixeira of lixeiras) {
+        if (lixeira.verificarColisao(itemSelecionado)) {
+          if (itemSelecionado.tipo === lixeira.tipo) {
+            pontuacao += 10;
+            dicaAtual = random(dicas);
+          } else {
+            pontuacao -= 5;
+            dicaAtual = "Ops! Esse não é o lugar certo.";
+          }
+          itens.splice(itens.indexOf(itemSelecionado), 1);
+          gerarNovoItem();
+          break;
+        }
+      }
+      itemSelecionado = null;
+    }
+  }
+
+  class Lixeira {
+    constructor(x, y, tipo, cor) {
+      this.x = x;
+      this.y = y;
+      this.tipo = tipo;
+      this.cor = cor;
+      this.largura = 100;
+      this.altura = 130;
+    }
+
+    exibir() {
+      fill(this.cor);
+      rect(this.x, this.y, this.largura, this.altura, 10);
+      fill(255);
+      textAlign(CENTER);
+      text(this.tipo.toUpperCase(), this.x + this.largura / 2, this.y + this.altura + 20);
+    }
+
+    verificarColisao(item) {
+      return (
+        item.x > this.x &&
+        item.x < this.x + this.largura &&
+        item.y > this.y &&
+        item.y < this.y + this.altura
+      );
+    }
+  }
+
+  class Item {
+    constructor(x, y, tipo) {
+      this.x = x;
+      this.y = y;
+      this.tipo = tipo;
+      this.tamanho = 40;
+    }
+
+    exibir() {
+      fill(100);
+      stroke(0);
+      ellipse(this.x, this.y, this.tamanho);
+      noStroke();
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(12);
+      text(this.tipo[0].toUpperCase(), this.x, this.y);
+    }
+
+    foiClicado(px, py) {
+      return dist(px, py, this.x, this.y) < this.tamanho / 2;
+    }
+  }
+
+  function gerarItens() {
+    for (let i = 0; i < 4; i++) {
+      gerarNovoItem();
+    }
+  }
+
+  function gerarNovoItem() {
+    let tipos = ["papel", "plástico", "vidro", "metal"];
+    let tipo = random(tipos);
+    let x = random(100, width - 100);
+    let y = random(100, height / 2);
+    itens.push(new Item(x, y, tipo));
+  }
+
+  function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+  }
+</script>
+</body>
+</html>
